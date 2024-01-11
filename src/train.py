@@ -13,8 +13,7 @@ from tqdm import tqdm as progress_bar
 from tqdm import trange
 import re
 sys.path.append('../aenets')
-from net1 import AutoEncoder
-from net2 import AutoEncoder2
+from net import AE
 
 
 def get_subdirectories(folder_path: str):
@@ -56,9 +55,9 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
     
-    ds = 'Ramani'
+    ds = 'Lee'
     sd = 'diag8'
-    extra = 'm20'
+    extra = 'm20_o6'
 
     # 含X染色体总数
     chr_num = 23
@@ -77,7 +76,7 @@ if __name__ == '__main__':
     update_mask = True
     mask_rate = 0.2
     # 用来调整embedding层大小
-    opt_rate = 1.0 / 5.0
+    opt_rate = 1.0 / 6.0
 
     # ********************************************************************************
 
@@ -139,7 +138,7 @@ if __name__ == '__main__':
             json.dump(size_data, f)
 
         # 创建模型实例并将其移动到GPU上
-        model = AutoEncoder2(ipt_size, opt_size)
+        model = AE(ipt_size, opt_size)
         if is_pretrained:
             model.load_state_dict(torch.load(load_model_path, map_location=device))
         #model = nn.DataParallel(model, device_ids=device_ids)

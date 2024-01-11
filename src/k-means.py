@@ -4,7 +4,6 @@ from dataset import MyDataset
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-# from nets.net1 import Autoencoder
 import time
 import random
 import os
@@ -14,8 +13,7 @@ import re
 import sys
 
 sys.path.append('../aenets')
-from net1 import AutoEncoder
-from net2 import AutoEncoder2
+from net import AE
 
 
 def get_subdirectories(folder_path: str):
@@ -62,7 +60,7 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
             opt_size = d['opt']
 
         # 创建模型实例
-        model = AutoEncoder2(ipt_size, opt_size)
+        model = AE(ipt_size, opt_size)
         model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
         model.to(device)
@@ -153,7 +151,7 @@ if __name__ == '__main__':
 
     dataset = 'Ramani'
     sdir = 'diag8'
-    extra = 'm20'
+    extra = 'm20_o6'
     train_epochs = 500
     prct = 30
 
