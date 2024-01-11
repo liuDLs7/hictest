@@ -8,7 +8,7 @@ class AutoEncoder2(nn.Module):
         # 编码器层
         self.encoder = nn.Sequential(
             nn.Linear(ipt_size, opt_size),
-            nn.ReLU(),
+            nn.Sigmoid(),
             # nn.Linear(1024, 128),
             # nn.ReLU(),
             #nn.Linear(128, opt_size),

@@ -56,9 +56,9 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
     
-    ds = 'Lee'
+    ds = '4DN'
     sd = 'diag8'
-    extra = 'm25'
+    extra = 'm20'
 
     # 含X染色体总数
     chr_num = 23
@@ -75,7 +75,9 @@ if __name__ == '__main__':
     batch_size = 256
     lr = 1e-3
     update_mask = True
-    mask_rate = 0.25
+    mask_rate = 0.2
+    # 用来调整embedding层大小
+    opt_rate = 1.0 / 5.0
 
     # ********************************************************************************
 
@@ -126,7 +128,7 @@ if __name__ == '__main__':
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
         ipt_size = train_dataset.datasize
-        opt_size = int(min(len(train_dataset), ipt_size) * 0.2) - 1
+        opt_size = int(min(len(train_dataset), ipt_size) * opt_rate) - 1
 
         size_data = {
             'ipt': ipt_size,

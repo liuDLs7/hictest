@@ -12,6 +12,7 @@ import json
 from scipy.sparse import csr_matrix
 import re
 import sys
+
 sys.path.append('../aenets')
 from net1 import AutoEncoder
 from net2 import AutoEncoder2
@@ -151,13 +152,11 @@ if __name__ == '__main__':
 
     dataset = 'Ramani'
     sdir = 'diag8'
-    extra = 'm25'
+    extra = 'm20'
     train_epochs = 500
     prct = 30
 
-    # 加载数据位置
-    root_dir = '../../Datas/vectors/{}/{}'.format(dataset, sdir)
-    data_info_path = os.path.join(root_dir, 'data_info.json')
+    # ********************************************************************************
 
     # 分类数
     if dataset == 'Lee':
@@ -168,21 +167,22 @@ if __name__ == '__main__':
         nc = 4
     else:
         assert 0, print('check dataset name!')
+
     ndim = 20
-
-    # 模型保存文件
-    model_dir = '../../models/{}/{}{}'.format(dataset, sdir, extra)
-    os.makedirs(model_dir, exist_ok=True)
-
-    # 加载ngenes
-    with open(data_info_path, 'r') as f:
-        ngenes = json.load(f)['chr_lens']
-
     # 含X染色体总数
     chr_num = 23
     is_X = False if dataset == 'Lee' else True
 
-    # ********************************************************************************
+    # 加载数据位置
+    root_dir = '../../Datas/vectors/{}/{}'.format(dataset, sdir)
+    data_info_path = os.path.join(root_dir, 'data_info.json')
+
+    # 模型保存文件
+    model_dir = '../../models/{}/{}{}'.format(dataset, sdir, extra)
+
+    # 加载ngenes
+    with open(data_info_path, 'r') as f:
+        ngenes = json.load(f)['chr_lens']
 
     label_dirs = get_subdirectories(root_dir)
     y = []
@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     combined = list(zip(network, y))
     random.shuffle(combined)
-    network[:], y[:] = zip(*combined) 
+    network[:], y[:] = zip(*combined)
 
     if train_epochs <= 0:
         cluster_labels, matrix_reduced = run_original_data(network, ngenes, nc, ndim, is_X, prct)
@@ -228,13 +228,18 @@ if __name__ == '__main__':
 
     y = np.array(y)
 
-    from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+    from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score
 
     # 计算调整兰德指数和归一化互信息
     ari = adjusted_rand_score(y, cluster_labels)
     nmi = normalized_mutual_info_score(y, cluster_labels)
+    hm = homogeneity_score(y, cluster_labels)
+    fm = completeness_score(y, cluster_labels)
 
     print("Adjusted Rand Index (ARI):", ari)
     print("Normalized Mutual Information (NMI):", nmi)
+    print("Homogeneity (HM):", hm)
+    print("Completeness (FM):", fm)
 
-    print('root_dir={}\nnc={}\nprct={}\ntrain_epochs={}'.format(root_dir, nc, prct, train_epochs))
+    print('root_dir={}\nmodel_dir={}\nnc={}\nprct={}\ntrain_epochs={}'.format(root_dir, model_dir, nc, prct,
+                                                                              train_epochs))
