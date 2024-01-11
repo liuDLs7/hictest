@@ -138,7 +138,7 @@ def myflatten(A, process_pattern: str = 'row', m: int = -1):
 
 def main():
     # **********************************调参部分*******************************************
-    dataset = 'Lee'
+    dataset = 'Ramani'
     pad = 0
     rp = -1
     mode = 'chr_max'

@@ -91,11 +91,12 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
         ndim = int(min(Q_concat.shape) * 0.2) - 1
         ndims.append(ndim)
         print(Q_concat.shape)
-        pca = PCA(n_components=ndim)
-        R_reduce = pca.fit_transform(Q_concat)
-        matrix.append(R_reduce)
-        # matrix.append(Q_concat)
+        # pca = PCA(n_components=ndim)
+        # R_reduce = pca.fit_transform(Q_concat)
+        # matrix.append(R_reduce)
+        matrix.append(Q_concat)
     matrix = np.concatenate(matrix, axis=1)
+    print(matrix.shape)
     pca = PCA(n_components=min(matrix.shape) - 1)
     matrix_reduce = pca.fit_transform(matrix)
     # ndim = 30

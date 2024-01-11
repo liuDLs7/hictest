@@ -8,7 +8,7 @@ class AutoEncoder2(nn.Module):
         # 编码器层
         self.encoder = nn.Sequential(
             nn.Linear(ipt_size, opt_size),
-            nn.Sigmoid(),
+            nn.ReLU(),
             # nn.Linear(1024, 128),
             # nn.ReLU(),
             #nn.Linear(128, opt_size),
@@ -22,7 +22,7 @@ class AutoEncoder2(nn.Module):
             # nn.Linear(128, 1024),
             # nn.ReLU(),
             #nn.Linear(128, ipt_size),
-            nn.Sigmoid(),
+            nn.ReLU(),
         )
 
     def forward(self, x):
