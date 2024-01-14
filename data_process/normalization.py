@@ -85,7 +85,7 @@ def impute_gpu(ngene, pad, rp, file_path, is_weight: bool, weights):
             diags.append(diag)
 
     diag = np.diag(np.diag(A))
-    A = A + A.T + 1
+    A = A + A.T - diag + 1
 
     if is_weight:
         for diag in diags:
@@ -152,9 +152,9 @@ def main():
     process_pattern = 'diag'
     m = 8
     chr_num = 23
-    extra = '_v4'
+    extra = '_v3'
 
-    is_weight = False
+    is_weight = True
     weights = [2]
 
     notes = 'None'

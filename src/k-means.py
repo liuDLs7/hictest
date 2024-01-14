@@ -77,7 +77,7 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
                 reconstructed_datas = model.decoder(embedding)
 
                 # Q_concat.append(test_data)
-                #Q_concat.append(embedding.cpu().numpy())
+                # Q_concat.append(embedding.cpu().numpy())
                 Q_concat.append(reconstructed_datas.cpu().numpy())
 
         Q_concat = np.array(Q_concat)
@@ -100,7 +100,7 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
     # ndim = 30
     ndim = min(ndims)
     print('ndim = ' + str(ndim))
-    kmeans = KMeans(n_clusters=nc, n_init=200).fit(matrix_reduce[:, :ndim])
+    kmeans = KMeans(n_clusters=nc, n_init=500).fit(matrix_reduce[:, :ndim])
     return kmeans.labels_, matrix_reduce
 
 
@@ -143,14 +143,14 @@ def run_original_data(network, ngenes, nc, ndim=20, is_X=False, prct=20):
 
 if __name__ == '__main__':
     # 设置设备
-    device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
     # device = 'cpu'
     print(device)
 
     # *******************************调参部分*****************************************
 
     dataset = 'Ramani'
-    sdir = 'diag8'
+    sdir = 'diag8_v3'
     extra = 'm20_o6'
     train_epochs = 500
     prct = 30
