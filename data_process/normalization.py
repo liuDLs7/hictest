@@ -1,19 +1,12 @@
 import datetime
 import json
 import re
-import numpy as np
 import os
-import sys
 import time
 import numpy as np
 import torch
 import torch.nn.functional as F
-from multiprocessing import Pool
 from scipy.sparse import csr_matrix
-from scipy.stats import chi2_contingency
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from tqdm import tqdm
 
 
 def get_subdirectories(folder_path):
@@ -79,13 +72,27 @@ def random_walk_gpu(A, rp):
 read_file_time = 0.0
 
 
-def impute_gpu(ngene, pad, rp, file_path):
+def impute_gpu(ngene, pad, rp, file_path, is_weight: bool, weights):
     global read_file_time
     t = time.time()
     D = np.loadtxt(file_path)
     A = csr_matrix((D[:, 2], (D[:, 0], D[:, 1])), shape=(ngene, ngene)).toarray()
     read_file_time += time.time() - t
-    A = np.log2(A + A.T + 1)
+    if is_weight:
+        diags = []
+        for i in range(len(weights)):
+            diag = np.diag(np.diag(A, i) * (weights[i] - 1), i)
+            diags.append(diag)
+
+    diag = np.diag(np.diag(A))
+    A = A + A.T + 1
+
+    if is_weight:
+        for diag in diags:
+            A = A + diag
+
+    A = np.log2(A)
+
     A = neighbor_ave_gpu(A, pad)
     if rp == -1:
         Q = A[:]
@@ -94,9 +101,9 @@ def impute_gpu(ngene, pad, rp, file_path):
     return Q
 
 
-def normalize_by_chr(ngene, pad, rp, file_path, mode='None'):
+def normalize_by_chr(ngene, pad, rp, file_path, is_weight: bool, weights, mode='None'):
     # not to conv when pad == 0, not to random_walk when rp == -1
-    Q = impute_gpu(ngene, pad, rp, file_path)
+    Q = impute_gpu(ngene, pad, rp, file_path, is_weight, weights)
     assert mode in ['None', 'chr_max', 'chr_sum'], \
         print('normalize_mode should in [\'None\', \'chr_max\', \'chr_sum\']')
     if mode == 'None':
@@ -145,7 +152,10 @@ def main():
     process_pattern = 'diag'
     m = 8
     chr_num = 23
-    extra = ''
+    extra = '_v4'
+
+    is_weight = False
+    weights = [2]
 
     notes = 'None'
     # ************************************************************************************
@@ -154,16 +164,19 @@ def main():
     target_dir = '../../Datas/vectors/{0}/{1}{2}{3}'.format(
         dataset, process_pattern, 'all' if m == -1 else str(m), extra)
     processed_dir = '../../Datas/{0}/{0}_processed'.format(dataset)
-    
+
     sub_dirs = get_subdirectories(root_dir)
 
     # chr_lens = get_max_chr_len(processed_dir, chr_num=chr_num)
     if dataset == 'Ramani':
-        chr_lens = [250, 244, 198, 192, 181, 171, 160, 147, 142, 136, 135, 134, 116, 108, 103, 91, 82, 79, 60, 63, 49, 52, 155]
+        chr_lens = [250, 244, 198, 192, 181, 171, 160, 147, 142, 136, 135, 134, 116, 108, 103, 91, 82, 79, 60, 63, 49,
+                    52, 155]
     elif dataset == '4DN':
-        chr_lens = [250, 244, 198, 192, 181, 172, 160, 147, 142, 136, 135, 134, 116, 108, 103, 91, 82, 79, 60, 63, 49, 52, 156]
+        chr_lens = [250, 244, 198, 192, 181, 172, 160, 147, 142, 136, 135, 134, 116, 108, 103, 91, 82, 79, 60, 63, 49,
+                    52, 156]
     elif dataset == 'Lee':
-        chr_lens = [251, 245, 200, 193, 182, 173, 161, 148, 143, 137, 137, 135, 116, 108, 103, 92, 83, 80, 61, 65, 49, 52, 157]
+        chr_lens = [251, 245, 200, 193, 182, 173, 161, 148, 143, 137, 137, 135, 116, 108, 103, 92, 83, 80, 61, 65, 49,
+                    52, 157]
     else:
         assert 0, print('check dataset name!')
     print(chr_lens)
@@ -193,7 +206,7 @@ def main():
             chromosome_number = int(match.group(2)) if match.group(2) != 'X' else chr_num
             ngene = chr_lens[chromosome_number - 1]
             t1 = time.time()
-            M = normalize_by_chr(ngene=ngene, pad=pad, rp=rp, file_path=file_path, mode=mode)
+            M = normalize_by_chr(ngene=ngene, pad=pad, rp=rp, file_path=file_path, mode=mode, is_weight=is_weight, weights=weights)
             t2 = time.time()
             M = M.cpu().numpy()
             M_vector = myflatten(M, process_pattern=process_pattern, m=m)
@@ -234,6 +247,8 @@ def main():
         'process_pattern': process_pattern,
         'm': m,
         'chr_lens': chr_lens,
+        'is_weight': is_weight,
+        'weights': weights,
         'last_update': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'notes': notes
     }

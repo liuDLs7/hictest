@@ -13,7 +13,7 @@ from tqdm import tqdm as progress_bar
 from tqdm import trange
 import re
 sys.path.append('../aenets')
-from net import AE
+from net import AE, AE_sw, AE2layers
 
 
 def get_subdirectories(folder_path: str):
@@ -47,7 +47,7 @@ def make_datasets(network, ngenes, root_dir, is_X, update_mask, mask_rate):
 
 if __name__ == '__main__':
     # 设置设备
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
     device1 = torch.device('cuda:1')
     device2 = torch.device('cuda:2')
     device_ids = [5, 6, 7]
@@ -55,8 +55,8 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
     
-    ds = 'Lee'
-    sd = 'diag8'
+    ds = 'Ramani'
+    sd = 'diag8_v4'
     extra = 'm20_o6'
 
     # 含X染色体总数
@@ -141,7 +141,6 @@ if __name__ == '__main__':
         model = AE(ipt_size, opt_size)
         if is_pretrained:
             model.load_state_dict(torch.load(load_model_path, map_location=device))
-        #model = nn.DataParallel(model, device_ids=device_ids)
         model.to(device)
 
         # 定义损失函数和优化器
@@ -199,4 +198,4 @@ if __name__ == '__main__':
 
     print('total use time: ' + str(time.time() - start_time) + 'seconds')
 
-    print('root_dir={}\nmodel_dir={}\nload_epochs={}\nsave_epochs={}\nbatch_size={}\nlr={}\nupdate_mask={}\nmask_rate={}'.format(root_dir, model_dir, load_epochs, save_epochs, batch_size, lr, update_mask, mask_rate))
+    print('root_dir={}\nmodel_dir={}\nload_epochs={}\nsave_epochs={}\nbatch_size={}\nlr={}\nupdate_mask={}\nmask_rate={}\nopt_rate={}'.format(root_dir, model_dir, load_epochs, save_epochs, batch_size, lr, update_mask, mask_rate, opt_rate))

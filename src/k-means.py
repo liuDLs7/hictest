@@ -13,7 +13,7 @@ import re
 import sys
 
 sys.path.append('../aenets')
-from net import AE
+from net import AE, AE_sw, AE2layers
 
 
 def get_subdirectories(folder_path: str):
@@ -77,7 +77,7 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
                 reconstructed_datas = model.decoder(embedding)
 
                 # Q_concat.append(test_data)
-                # Q_concat.append(embedding.cpu().numpy())
+                #Q_concat.append(embedding.cpu().numpy())
                 Q_concat.append(reconstructed_datas.cpu().numpy())
 
         Q_concat = np.array(Q_concat)
@@ -178,6 +178,7 @@ if __name__ == '__main__':
 
     # 模型保存文件
     model_dir = '../../models/{}/{}{}'.format(dataset, sdir, extra)
+    print('model_dir=', model_dir)
 
     # 加载ngenes
     with open(data_info_path, 'r') as f:
