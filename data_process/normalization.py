@@ -131,7 +131,7 @@ def myflatten(A, process_pattern: str = 'row', m: int = -1):
     elif process_pattern == 'diag':
         # 按对角线取，只取靠近主对角线的m条（含主对角线)
         if m != -1:
-            upper_diags = [np.diagonal(A, offset=i) for i in range(0, m)]
+            upper_diags = [np.diagonal(A, offset=i) for i in range(1, m)]
         else:
             upper_diags = [np.diagonal(A, offset=i) for i in range(0, A.shape[0])]
 
@@ -152,10 +152,10 @@ def main():
     process_pattern = 'diag'
     m = 8
     chr_num = 23
-    extra = '_v3'
+    extra = '_test'
 
-    is_weight = True
-    weights = [2]
+    is_weight = False
+    weights = [10, 8, 6, 4, 2]
 
     notes = 'None'
     # ************************************************************************************

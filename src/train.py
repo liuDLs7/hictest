@@ -12,6 +12,7 @@ import sys
 from tqdm import tqdm as progress_bar
 from tqdm import trange
 import re
+
 sys.path.append('../aenets')
 from net import AE, AE_sw, AE2layers
 
@@ -47,16 +48,16 @@ def make_datasets(network, ngenes, root_dir, is_X, update_mask, mask_rate):
 
 if __name__ == '__main__':
     # 设置设备
-    device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
     device1 = torch.device('cuda:1')
     device2 = torch.device('cuda:2')
     device_ids = [5, 6, 7]
     print(device, device1, device2)
 
     # *******************************调参部分*****************************************
-    
+
     ds = 'Ramani'
-    sd = 'diag8_v3'
+    sd = 'diag8_test'
     extra = 'm20_o6'
 
     # 含X染色体总数
@@ -92,8 +93,9 @@ if __name__ == '__main__':
     with open(data_info_path, 'r') as f:
         ngenes = json.load(f)['chr_lens']
 
-
     label_dirs = get_subdirectories(root_dir)
+    if 'masks' in label_dirs:
+        label_dirs.remove('masks')
     y = []
     network = []
 
@@ -116,7 +118,8 @@ if __name__ == '__main__':
 
     network_zip = list(zip(network, y))
 
-    train_datasets = make_datasets(network=network_zip, ngenes=ngenes, root_dir=root_dir, is_X=is_X, update_mask=update_mask, mask_rate=mask_rate)
+    train_datasets = make_datasets(network=network_zip, ngenes=ngenes, root_dir=root_dir, is_X=is_X,
+                                   update_mask=update_mask, mask_rate=mask_rate)
 
     start_time = time.time()
 
@@ -174,12 +177,12 @@ if __name__ == '__main__':
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-               
+
                 # 手动释放内存
-                #del original_datas
-                #del masked_datas
-                #torch.cuda.empty_cache()
-                
+                # del original_datas
+                # del masked_datas
+                # torch.cuda.empty_cache()
+
                 running_loss += loss.item() * original_datas.size(0)  # 累积损失值
 
             epoch_loss = running_loss / len(train_loader.dataset)  # 计算整个训练集上的平均损失值
@@ -194,8 +197,10 @@ if __name__ == '__main__':
         print('saving model...')
         torch.save(model.state_dict(), save_model_path)
         print('model saved!')
-        #time.sleep(5)
+        # time.sleep(5)
 
     print('total use time: ' + str(time.time() - start_time) + 'seconds')
 
-    print('root_dir={}\nmodel_dir={}\nload_epochs={}\nsave_epochs={}\nbatch_size={}\nlr={}\nupdate_mask={}\nmask_rate={}\nopt_rate={}'.format(root_dir, model_dir, load_epochs, save_epochs, batch_size, lr, update_mask, mask_rate, opt_rate))
+    print(
+        'root_dir={}\nmodel_dir={}\nload_epochs={}\nsave_epochs={}\nbatch_size={}\nlr={}\nupdate_mask={}\nmask_rate={}\nopt_rate={}'.format(
+            root_dir, model_dir, load_epochs, save_epochs, batch_size, lr, update_mask, mask_rate, opt_rate))

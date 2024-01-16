@@ -53,10 +53,14 @@ class MyDataset(Dataset):
 
         self.datasize = len(Q_concat[0])
 
+        mask_dir = os.path.join(root_dir, 'masks')
+
         if is_train:
-            self.mask_file = os.path.join(root_dir, 'chr' + chr_num + '_train_mask_index.json')
+            os.makedirs(mask_dir, exist_ok=True)
+            self.mask_file = os.path.join(mask_dir, 'chr' + chr_num + '_train_mask_index.json')
         else:
-            self.mask_file = os.path.join(root_dir, 'chr' + chr_num + 'test_mask_index.json')
+            os.makedirs(mask_dir, exist_ok=True)
+            self.mask_file = os.path.join(mask_dir, 'chr' + chr_num + '_test_mask_index.json')
 
         # 生成掩码位置索引
         if is_mask and update_mask:

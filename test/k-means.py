@@ -1,6 +1,5 @@
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from dataset import MyDataset
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
@@ -19,30 +18,6 @@ from net import AE, AE_sw, AE2layers
 def get_subdirectories(folder_path: str):
     subdirectories = [name for name in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, name))]
     return subdirectories
-
-
-def make_datasets(network, ngenes, root_dir, is_X=False):
-    datasets = []
-    for c, ngene in enumerate(ngenes):
-        labels = []
-        file_names = []
-        # print('ndim = ' + str(ndim))
-        c = 'X' if is_X and c == len(ngenes) - 1 else str(c + 1)
-        start_time = time.time()
-        Q_concat = []
-        for cell, label in network:
-            labels.append(label)
-            file_name = cell + '_chr' + c + '.npy'
-            file_names.append(file_name)
-            Q_concat.append(np.load(file_name))
-        # print(labels[112], file_names[112], Q_concat.__len__(), Q_concat[0].__len__())
-        dataset = MyDataset(root_dir=root_dir, Q_concat=Q_concat, labels=labels, file_names=file_names
-                            , chr_num=c, is_mask=True, random_mask=True, mask_rate=0.1, update_mask=False,
-                            is_train=True, is_shuffle=True)
-        end_time = time.time()
-        print('Load and make dataset for chromosome', c, 'take', end_time - start_time, 'seconds')
-        datasets.append(dataset)
-    return datasets
 
 
 def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=False, prct=20):
@@ -83,8 +58,17 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
         Q_concat = np.array(Q_concat)
 
         if prct > -1:
-            thres = np.percentile(Q_concat, 100 - prct, axis=1)
-            Q_concat = (Q_concat > thres[:, None])
+            p1 = 10
+            p2 = 20
+            p3 = 30
+            thres1 = np.percentile(Q_concat, 100 - p1, axis=1)
+            thres2 = np.percentile(Q_concat, 100 - p2, axis=1)
+            thres3 = np.percentile(Q_concat, 100 - p3, axis=1)
+            Q_concat_new = np.zeros_like(Q_concat)
+            Q_concat_new[np.where((Q_concat > thres3[:, None]) & (Q_concat <= thres2[:, None]))] = 1
+            Q_concat_new[np.where((Q_concat > thres2[:, None]) & (Q_concat <= thres1[:, None]))] = 5
+            Q_concat_new[np.where(Q_concat > thres1[:, None])] = 10
+            Q_concat = Q_concat_new
 
         ndim = int(min(Q_concat.shape) * 0.2) - 1
         ndims.append(ndim)
@@ -137,7 +121,7 @@ def run_original_data(network, ngenes, nc, ndim=20, is_X=False, prct=20):
     matrix_reduce = pca.fit_transform(matrix)
     # ndim = 30
     print('ndim = ' + str(ndim))
-    kmeans = KMeans(n_clusters=nc, n_init=500, init='k-means++').fit(matrix_reduce[:, :ndim])
+    kmeans = KMeans(n_clusters=nc, n_init=200).fit(matrix_reduce[:, :ndim])
     return kmeans.labels_, matrix_reduce
 
 
@@ -149,11 +133,11 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
 
-    dataset = 'Lee'
+    dataset = 'Ramani'
     sdir = 'diag8_w3'
     extra = 'm20_o6'
     train_epochs = 500
-    prct = 20
+    prct = 30
 
     # ********************************************************************************
 
