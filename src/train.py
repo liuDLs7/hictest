@@ -14,7 +14,7 @@ from tqdm import trange
 import re
 
 sys.path.append('../aenets')
-from net import AE, AE_sw, AE2layers
+from net import AE, AE_test
 
 
 def get_subdirectories(folder_path: str):
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # *******************************调参部分*****************************************
 
     ds = 'Ramani'
-    sd = 'diag8_test'
+    sd = 'diag8'
     extra = 'm20_o6'
 
     # 含X染色体总数

@@ -13,7 +13,7 @@ import re
 import sys
 
 sys.path.append('../aenets')
-from net import AE, AE_sw, AE2layers
+from net import AE, AE_test
 
 
 def get_subdirectories(folder_path: str):
@@ -149,11 +149,11 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
 
-    dataset = 'Lee'
-    sdir = 'diag8_w3'
+    dataset = 'Ramani'
+    sdir = 'diag8'
     extra = 'm20_o6'
     train_epochs = 500
-    prct = 20
+    prct = 30
 
     # ********************************************************************************
 

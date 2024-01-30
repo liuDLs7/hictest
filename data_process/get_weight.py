@@ -72,7 +72,7 @@ if __name__ == '__main__':
     # *******************************调参部分*****************************************
 
     dataset = 'Ramani'
-    cal_avg = True
+    cal_avg = False
     cal_weight = True
 
     # ********************************************************************************
@@ -147,6 +147,7 @@ if __name__ == '__main__':
             avg_file = os.path.join(avgs_dir, 'chr' + c + '_avg.npy')
             Q_avg = np.load(avg_file)
             weight = SCCbydiag(Q_avg, Q_avg, 10)
+            # print('chr' + c + '\'s weight:', np.log2(weight / min(weight)) + 1)
             print('chr' + c + '\'s weight:', weight / min(weight))
             save_path = os.path.join(t_dir, 'chr' + c + '_weight.npy')
             np.save(save_path, weight)
