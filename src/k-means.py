@@ -1,5 +1,6 @@
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, SpectralClustering
 from sklearn.decomposition import PCA
+from sklearn.metrics.pairwise import pairwise_distances
 from dataset import MyDataset
 import torch
 import numpy as np
@@ -11,9 +12,11 @@ import json
 from scipy.sparse import csr_matrix
 import re
 import sys
+from clusters import ClusteringEnsemble
 
 sys.path.append('../aenets')
 from net import AE, AE_test
+
 
 
 def get_subdirectories(folder_path: str):
@@ -45,7 +48,8 @@ def make_datasets(network, ngenes, root_dir, is_X=False):
     return datasets
 
 
-def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=False, prct=20):
+def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=False, prct=20, cluster='k-means'):
+    assert cluster in ['k-means', 'dbscan', 'agg', 'spec', 'ensemble'], print('no such cluster!')
     matrix = []
     ndims = []
     for c, ngene in enumerate(ngenes):
@@ -100,8 +104,42 @@ def run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim=20, is_X=Fal
     # ndim = 30
     ndim = min(ndims)
     print('ndim = ' + str(ndim))
-    kmeans = KMeans(n_clusters=nc, n_init=500).fit(matrix_reduce[:, :ndim])
-    return kmeans.labels_, matrix_reduce
+    # 下载到PC端可视化
+    np.save('matrix_reduced.npy', matrix_reduce)
+    
+    if cluster == 'k-means':
+        # k-means
+        kmeans = KMeans(n_clusters=nc, n_init=500).fit(matrix_reduce[:, :ndim])
+        labels = kmeans.labels_
+
+    elif cluster == 'dbscan':
+        # DBSCAN
+        dbscan = DBSCAN(eps=15, min_samples=30)
+        labels = dbscan.fit_predict(matrix_reduce[:, :ndim])
+
+    elif cluster == 'agg':
+        # 层次聚类（Agglomerative Clustering）
+        agg_clustering = AgglomerativeClustering(n_clusters=nc)
+        labels = agg_clustering.fit_predict(matrix_reduce[:, :ndim])
+
+    elif cluster == 'spec':
+        # 谱聚类（Spectral Clustering）
+        spectral_clustering = SpectralClustering(n_clusters=nc, affinity='nearest_neighbors', n_init=100)
+        labels = spectral_clustering.fit_predict(matrix_reduce[:, :ndim])
+
+    elif cluster == 'ensemble':
+        kmeans = KMeans(n_clusters=nc, n_init=500)
+        agg_clustering = AgglomerativeClustering(n_clusters=nc)
+        spectral_clustering = SpectralClustering(n_clusters=nc, affinity='nearest_neighbors', n_init=100)
+        ensemble_model = ClusteringEnsemble(models=[kmeans, agg_clustering, spectral_clustering])
+        ensemble_model.fit(matrix_reduce[:, :ndim])
+        labels = ensemble_model.predict(matrix_reduce[:, :ndim])
+
+    else:
+        print('报错也能出问题？再改改！')
+        exit(1)
+
+    return labels
 
 
 def run_original_data(network, ngenes, nc, ndim=20, is_X=False, prct=20):
@@ -138,7 +176,7 @@ def run_original_data(network, ngenes, nc, ndim=20, is_X=False, prct=20):
     # ndim = 30
     print('ndim = ' + str(ndim))
     kmeans = KMeans(n_clusters=nc, n_init=500, init='k-means++').fit(matrix_reduce[:, :ndim])
-    return kmeans.labels_, matrix_reduce
+    return kmeans.labels_
 
 
 if __name__ == '__main__':
@@ -154,6 +192,8 @@ if __name__ == '__main__':
     extra = 'm20_o6'
     train_epochs = 500
     prct = 30
+    # k-means, dbscan, agg, spec, ensemble
+    cluster = 'dbscan'
 
     # ********************************************************************************
 
@@ -224,11 +264,15 @@ if __name__ == '__main__':
     network[:], y[:] = zip(*combined)
 
     if train_epochs <= 0:
-        cluster_labels, matrix_reduced = run_original_data(network, ngenes, nc, ndim, is_X, prct)
+        cluster_labels = run_original_data(network, ngenes, nc, ndim, is_X, prct)
     else:
-        cluster_labels, matrix_reduced = run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim, is_X, prct)
+        cluster_labels = run_on_model(model_dir, train_epochs, network, ngenes, nc, ndim, is_X, prct, cluster=cluster)
 
     y = np.array(y)
+    
+    np.save('labels.npy', y)
+    np.save('predicts.npy', cluster_labels)
+    print(list(cluster_labels))
 
     from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score
 
@@ -243,5 +287,5 @@ if __name__ == '__main__':
     print("Homogeneity (HM):", hm)
     print("Completeness (FM):", fm)
 
-    print('root_dir={}\nmodel_dir={}\nnc={}\nprct={}\ntrain_epochs={}'.format(root_dir, model_dir, nc, prct,
+    print('root_dir={}\nmodel_dir={}\ncluster={}\nnc={}\nprct={}\ntrain_epochs={}'.format(root_dir, model_dir, cluster, nc, prct,
                                                                               train_epochs))

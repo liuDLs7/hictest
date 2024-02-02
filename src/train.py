@@ -56,9 +56,9 @@ if __name__ == '__main__':
 
     # *******************************调参部分*****************************************
 
-    ds = 'Ramani'
+    ds = '4DN'
     sd = 'diag8'
-    extra = 'm20_o6'
+    extra = 'm25_o6'
 
     # 含X染色体总数
     chr_num = 23
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     batch_size = 256
     lr = 1e-3
     update_mask = True
-    mask_rate = 0.2
+    mask_rate = 0.20
     # 用来调整embedding层大小
     opt_rate = 1.0 / 6.0
 
