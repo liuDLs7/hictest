@@ -160,7 +160,7 @@ def main():
     notes = 'None'
     # ************************************************************************************
 
-    chr_num = 23 if dataset in ['Ramani', '4DN', 'Lee']
+    chr_num = 23 if dataset in ['Ramani', '4DN', 'Lee'] else 20
 
     root_dir = '../../../Downloads/CTPredictor/Data_filter/{}'.format(dataset)
     target_dir = '../../Datas/vectors/{0}/{1}{2}{3}'.format(
