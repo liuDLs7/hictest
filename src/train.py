@@ -48,20 +48,17 @@ def make_datasets(network, ngenes, root_dir, is_X, update_mask, mask_rate):
 
 if __name__ == '__main__':
     # 设置设备
-    device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-    device1 = torch.device('cuda:1')
-    device2 = torch.device('cuda:2')
-    device_ids = [5, 6, 7]
-    print(device, device1, device2)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     # *******************************调参部分*****************************************
 
     ds = '4DN'
     sd = 'diag8'
-    extra = 'm25_o6'
+    extra = 'm20_o6'
 
     # 含X染色体总数
-    chr_num = 23
+    chr_num = 23 if ds in['Ramani', '4DN', 'Lee'] else 20
     is_X = False if ds == 'Lee' else True
 
     # 是否使用训练过的模型继续训练
