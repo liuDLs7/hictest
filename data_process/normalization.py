@@ -151,14 +151,16 @@ def main():
     mode = 'chr_max'
     process_pattern = 'diag'
     m = 8
-    chr_num = 23
-    extra = '_test'
+    
+    extra = ''
 
-    is_weight = False
-    weights = [10, 8, 6, 4, 2]
+    is_weight = True
+    weights = [2]
 
     notes = 'None'
     # ************************************************************************************
+
+    chr_num = 23 if dataset in ['Ramani', '4DN', 'Lee']
 
     root_dir = '../../../Downloads/CTPredictor/Data_filter/{}'.format(dataset)
     target_dir = '../../Datas/vectors/{0}/{1}{2}{3}'.format(
@@ -178,10 +180,9 @@ def main():
         chr_lens = [251, 245, 200, 193, 182, 173, 161, 148, 143, 137, 137, 135, 116, 108, 103, 92, 83, 80, 61, 65, 49,
                     52, 157]
     else:
-        assert 0, print('check dataset name!')
+        chr_lens = get_max_chr_len(processed_dir, chr_num=chr_num)
+        # assert 0, print('check dataset name!')
     print(chr_lens)
-    # chr_lens = [250, 244, 198, 192, 181, 171, 160, 147, 142, 136, 135, 134, 116, 108, 103, 91, 82, 79, 60, 63, 49, 52,
-    #             155]
 
     start = time.time()
 
